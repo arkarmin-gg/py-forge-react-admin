@@ -1,0 +1,615 @@
+{
+  "info": {
+    "_postman_id": "a3f1c9e0-6b1a-4d2e-9f0a-py-forge-collection",
+    "name": "py-forge API",
+    "description": "FastAPI backend (py-forge) — admin auth, admins, RBAC, settings, and activity logs.\n\nBase URL is versioned under `/api/v1` except `GET /health`. Auth is Bearer JWT (`Authorization: Bearer <access_token>`), obtained via `Auth Admin > Login` and rotated via `Auth Admin > Refresh Token`. Both requests auto-populate the `access_token` / `refresh_token` collection variables via their Tests scripts, so no manual copy/paste is needed.\n\nList endpoints share a common pagination envelope `{ items, total, limit, offset }` and a `sort` query param (comma-separated, `-field` for descending). Error responses use `{ error_code, detail }`.\n\nNote: the API disables OpenAPI/Swagger generation (`openapi_url=None`), so this collection was hand-built from the route/schema source rather than imported.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{access_token}}", "type": "string" }
+    ]
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000", "type": "string" },
+    { "key": "access_token", "value": "", "type": "string" },
+    { "key": "refresh_token", "value": "", "type": "string" },
+    { "key": "admin_email", "value": "admin@example.com", "type": "string" },
+    { "key": "admin_password", "value": "ChangeMe123!", "type": "string" },
+    { "key": "admin_id", "value": "", "type": "string" },
+    { "key": "role_id", "value": "", "type": "string" },
+    { "key": "permission_id", "value": "", "type": "string" },
+    { "key": "setting_key", "value": "site.title", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            },
+            "description": "Public, unversioned liveness check. Returns `{ status, environment, app_name, version, timestamp }`."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Auth (Admin)",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.access_token) {",
+                  "    pm.collectionVariables.set('access_token', res.access_token);",
+                  "    pm.collectionVariables.set('refresh_token', res.refresh_token);",
+                  "    console.log('Stored access_token/refresh_token from login response');",
+                  "}",
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "username", "value": "{{admin_email}}", "type": "text" },
+                { "key": "password", "value": "{{admin_password}}", "type": "text" },
+                { "key": "grant_type", "value": "password", "type": "text" }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/admin/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "admin", "login"]
+            },
+            "description": "OAuth2 password grant (form-urlencoded, not JSON). `username` is the admin's email. Response: `TokenResponse { access_token, refresh_token, token_type }`. Captures the caller's IP/user-agent for the activity log."
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.access_token) {",
+                  "    pm.collectionVariables.set('access_token', res.access_token);",
+                  "    pm.collectionVariables.set('refresh_token', res.refresh_token);",
+                  "    console.log('Rotated access_token/refresh_token');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/admin/refresh",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "admin", "refresh"]
+            },
+            "description": "Rotates the refresh token and issues a new access token. Response: `TokenResponse`."
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/admin/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "admin", "logout"]
+            },
+            "description": "204 No Content. Invalidates the current session server-side."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current Admin (me)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/admin/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "admin", "me"]
+            },
+            "description": "Response: `AdminRead` for the authenticated admin."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Current Admin (me)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "data",
+                  "value": "{\"email\": \"new-email@example.com\", \"full_name\": \"New Name\"}",
+                  "type": "text",
+                  "description": "JSON string matching AdminProfileUpdate. At least one of email/full_name is required."
+                },
+                {
+                  "key": "profile_image",
+                  "type": "file",
+                  "src": [],
+                  "description": "Optional image file",
+                  "disabled": true
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/admin/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "admin", "me"]
+            },
+            "description": "multipart/form-data. `data` form field carries the JSON payload (AdminProfileUpdate); `profile_image` is an optional file part. Response: `AdminRead`."
+          },
+          "response": []
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"current_password\": \"{{admin_password}}\",\n  \"new_password\": \"NewStrongerPass123!\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/admin/me/change-password",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "admin", "me", "change-password"]
+            },
+            "description": "204 No Content. `new_password` must be 8-128 chars."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Current Admin (me)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/admin/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "admin", "me"]
+            },
+            "description": "204 No Content. Self-deletion of the authenticated admin account."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admins",
+      "item": [
+        {
+          "name": "List Admins",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/admins?limit=20&offset=0&sort=-created_at,id&search=&role_ids=&is_banned=&is_two_factor_enabled=&created_from=&created_to=",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "admins"],
+              "query": [
+                { "key": "limit", "value": "20", "description": "1-100, default 20" },
+                { "key": "offset", "value": "0", "description": ">=0, default 0" },
+                { "key": "sort", "value": "-created_at,id", "description": "Allowed: created_at, email, full_name, last_login_at, is_banned, id. Prefix '-' for desc." },
+                { "key": "search", "value": "", "description": "Free-text match against email/full_name" },
+                { "key": "role_ids", "value": "", "description": "Repeatable UUID; add multiple 'role_ids' params to filter by several roles" },
+                { "key": "is_banned", "value": "", "description": "true|false" },
+                { "key": "is_two_factor_enabled", "value": "", "description": "true|false" },
+                { "key": "created_from", "value": "", "description": "ISO8601 timezone-aware datetime" },
+                { "key": "created_to", "value": "", "description": "ISO8601 timezone-aware datetime" }
+              ]
+            },
+            "description": "Requires permission admins:READ. Response: `Page[AdminRead]`."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const res = pm.response.json();",
+                  "    pm.collectionVariables.set('admin_id', res.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "data",
+                  "value": "{\"email\": \"new-admin@example.com\", \"full_name\": \"New Admin\", \"password\": \"StrongPass123!\", \"role_id\": \"{{role_id}}\"}",
+                  "type": "text",
+                  "description": "JSON string matching AdminCreate. email, full_name, password, role_id all required."
+                },
+                {
+                  "key": "profile_image",
+                  "type": "file",
+                  "src": [],
+                  "description": "Optional image file",
+                  "disabled": true
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/admins",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "admins"]
+            },
+            "description": "Requires permission admins:CREATE. multipart/form-data. 201. Response: `AdminRead`."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Admin By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/admins/{{admin_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "admins", "{{admin_id}}"]
+            },
+            "description": "Requires permission admins:READ. 404 `AdminNotFound` if missing."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Admin",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "data",
+                  "value": "{\"full_name\": \"Updated Name\", \"is_banned\": false}",
+                  "type": "text",
+                  "description": "JSON string matching AdminUpdate. At least one field required."
+                },
+                {
+                  "key": "profile_image",
+                  "type": "file",
+                  "src": [],
+                  "description": "Optional image file",
+                  "disabled": true
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/admins/{{admin_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "admins", "{{admin_id}}"]
+            },
+            "description": "Requires permission admins:UPDATE. multipart/form-data."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Admin",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/admins/{{admin_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "admins", "{{admin_id}}"]
+            },
+            "description": "Requires permission admins:DELETE. 204 No Content."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Admin Profile Image",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/admins/{{admin_id}}/profile-image",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "admins", "{{admin_id}}", "profile-image"]
+            },
+            "description": "Requires permission admins:UPDATE. Response: `AdminRead` with `profile_image_url: null`."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "RBAC",
+      "item": [
+        {
+          "name": "List Roles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/rbac/roles?limit=20&offset=0&sort=rank,name,id&search=&permission_ids=&module_codes=&created_from=&created_to=",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "rbac", "roles"],
+              "query": [
+                { "key": "limit", "value": "20" },
+                { "key": "offset", "value": "0" },
+                { "key": "sort", "value": "rank,name,id", "description": "Allowed: rank, name, created_at, id" },
+                { "key": "search", "value": "" },
+                { "key": "permission_ids", "value": "", "description": "Repeatable UUID" },
+                { "key": "module_codes", "value": "", "description": "Repeatable string" },
+                { "key": "created_from", "value": "" },
+                { "key": "created_to", "value": "" }
+              ]
+            },
+            "description": "Requires permission rbac:READ. Response: `Page[RoleRead]`."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Role",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const res = pm.response.json();",
+                  "    pm.collectionVariables.set('role_id', res.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Support Agent\",\n  \"description\": \"Read-only support access\",\n  \"rank\": 50,\n  \"permission_ids\": [\"{{permission_id}}\"]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/rbac/roles",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "rbac", "roles"]
+            },
+            "description": "Requires permission rbac:CREATE. `name` required (1-255 chars); `rank` >=1, default 99; `permission_ids` defaults to []. 201. Response: `RoleRead`."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Role By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/rbac/roles/{{role_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "rbac", "roles", "{{role_id}}"]
+            },
+            "description": "Requires permission rbac:READ. 404 `RoleNotFound` if missing."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Role",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated description\",\n  \"rank\": 40\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/rbac/roles/{{role_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "rbac", "roles", "{{role_id}}"]
+            },
+            "description": "Requires permission rbac:UPDATE. Response: `RoleRead`."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Role",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/rbac/roles/{{role_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "rbac", "roles", "{{role_id}}"]
+            },
+            "description": "Requires permission rbac:DELETE. 204 No Content."
+          },
+          "response": []
+        },
+        {
+          "name": "List Permissions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (Array.isArray(res) && res.length > 0) {",
+                  "    pm.collectionVariables.set('permission_id', res[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/rbac/permissions",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "rbac", "permissions"]
+            },
+            "description": "Requires permission rbac:READ. Not paginated. Response: `list[PermissionRead]` where each item embeds its `module`."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Settings",
+      "item": [
+        {
+          "name": "List Settings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/settings?limit=20&offset=0&sort=key,id&search=&key_prefix=",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "settings"],
+              "query": [
+                { "key": "limit", "value": "20" },
+                { "key": "offset", "value": "0" },
+                { "key": "sort", "value": "key,id", "description": "Allowed: key, created_at, id" },
+                { "key": "search", "value": "" },
+                { "key": "key_prefix", "value": "", "description": "e.g. 'site.' to match all site.* keys" }
+              ]
+            },
+            "description": "Requires permission settings:READ. Response: `Page[SettingRead]`."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Setting By Key",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/settings/{{setting_key}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "settings", "{{setting_key}}"]
+            },
+            "description": "Requires permission settings:READ. `key` pattern: ^[a-z0-9][a-z0-9_.-]{0,254}$. 404 `SettingNotFound` if missing."
+          },
+          "response": []
+        },
+        {
+          "name": "Upsert Setting",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"value\": {\n    \"enabled\": true,\n    \"label\": \"py-forge\"\n  },\n  \"description\": \"Site title shown in the admin console\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/settings/{{setting_key}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "settings", "{{setting_key}}"]
+            },
+            "description": "Requires permission settings:UPDATE. Creates the setting if `key` doesn't exist yet, otherwise updates it. `value` (arbitrary JSON object) is required. Response: `SettingRead`."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Setting",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/settings/{{setting_key}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "settings", "{{setting_key}}"]
+            },
+            "description": "Requires permission settings:DELETE. 204 No Content."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Activity Logs",
+      "item": [
+        {
+          "name": "List Activity Logs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/logs?limit=20&offset=0&sort=-created_at,id&actor_type=&actor_id=&action=&status=&resource_type=&resource_id=&created_from=&created_to=",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "admin", "logs"],
+              "query": [
+                { "key": "limit", "value": "20" },
+                { "key": "offset", "value": "0" },
+                { "key": "sort", "value": "-created_at,id", "description": "Allowed: created_at, action, status, id" },
+                { "key": "actor_type", "value": "", "description": "e.g. admin | user" },
+                { "key": "actor_id", "value": "", "description": "UUID of the acting admin/user" },
+                { "key": "action", "value": "", "description": "e.g. admin.create, auth.login, rbac.role.create, settings.upsert" },
+                { "key": "status", "value": "", "description": "success | failure" },
+                { "key": "resource_type", "value": "" },
+                { "key": "resource_id", "value": "" },
+                { "key": "created_from", "value": "", "description": "ISO8601 timezone-aware datetime" },
+                { "key": "created_to", "value": "", "description": "ISO8601 timezone-aware datetime" }
+              ]
+            },
+            "description": "Requires permission activity_logs:READ. Read-only module — logs are written internally by other services. Response: `Page[ActivityLogRead]`."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
