@@ -132,7 +132,8 @@ type PyForgePage<T> = {
 
 function buildSort(query: Pick<ListQuery, 'sortBy' | 'sortOrder'>) {
   if (!query.sortBy) return undefined
-  return query.sortOrder === 'DESC' ? `-${query.sortBy}` : query.sortBy
+  const field = toSnakeCase(query.sortBy)
+  return query.sortOrder === 'DESC' ? `-${field}` : field
 }
 
 export async function getPaginated<T>(

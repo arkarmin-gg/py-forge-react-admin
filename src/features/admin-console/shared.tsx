@@ -136,6 +136,11 @@ function useDebouncedValue<T>(value: T, delay = 300) {
   return debounced
 }
 
+function useDebouncedQuery(query: QueryState): QueryState {
+  const debouncedSearch = useDebouncedValue(query.search, 300)
+  return { ...query, search: debouncedSearch }
+}
+
 function PageShell({
   title,
   description,
@@ -563,9 +568,10 @@ export function AdminsPage() {
   const canUpdate = useCan([{ module: 'admins', action: 'update' }])
   const canDelete = useCan([{ module: 'admins', action: 'delete' }])
 
+  const debouncedQuery = useDebouncedQuery(query)
   const admins = useQuery({
-    queryKey: ['admins', query],
-    queryFn: () => listAdmins(query),
+    queryKey: ['admins', debouncedQuery],
+    queryFn: () => listAdmins(debouncedQuery),
   })
   const remove = useMutation({
     mutationFn: deleteAdmin,
@@ -796,9 +802,10 @@ export function RolesPage() {
   const [query, setQuery] = useState<QueryState>({ ...defaultQuery })
   const [editing, setEditing] = useState<Role | null>(null)
   const [deleting, setDeleting] = useState<Role | null>(null)
+  const debouncedQuery = useDebouncedQuery(query)
   const roles = useQuery({
-    queryKey: ['roles', query],
-    queryFn: () => listRoles(query),
+    queryKey: ['roles', debouncedQuery],
+    queryFn: () => listRoles(debouncedQuery),
   })
   const permissions = useQuery({
     queryKey: ['permissions'],
@@ -1007,13 +1014,14 @@ function RoleDialog({
 export function LogsPage() {
   const [query, setQuery] = useState<QueryState>({ ...defaultQuery })
   const [viewing, setViewing] = useState<ActivityLog | null>(null)
+  const debouncedQuery = useDebouncedQuery(query)
   const logs = useQuery({
-    queryKey: ['logs', query],
+    queryKey: ['logs', debouncedQuery],
     queryFn: () => {
       const params: LogQuery = {
-        ...query,
-        sortBy: query.sortBy ?? 'createdAt',
-        sortOrder: query.sortOrder ?? 'DESC',
+        ...debouncedQuery,
+        sortBy: debouncedQuery.sortBy ?? 'createdAt',
+        sortOrder: debouncedQuery.sortOrder ?? 'DESC',
       }
       return listLogs(params)
     },
