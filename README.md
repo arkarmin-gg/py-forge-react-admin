@@ -2,7 +2,7 @@
 
 Admin Dashboard UI crafted with Shadcn and Vite. Built with responsiveness and accessibility in mind.
 
-![alt text](public/images/react-admin.png)
+![alt text](public/images/py-forge-react-admin.png)
 
 [![Sponsored by Clerk](https://img.shields.io/badge/Sponsored%20by-Clerk-5b6ee1?logo=clerk)](https://go.clerk.com/GttUAaK)
 
@@ -79,13 +79,13 @@ If you want to update components using the Shadcn CLI (e.g., `npx shadcn@latest 
 Clone the project
 
 ```bash
-  git clone https://github.com/satnaing/react-admin.git
+  git clone https://github.com/satnaing/py-forge-react-admin.git
 ```
 
 Go to the project directory
 
 ```bash
-  cd react-admin
+  cd py-forge-react-admin
 ```
 
 Install dependencies
