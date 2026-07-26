@@ -68,7 +68,12 @@ export function LogsPage() {
       title='Logs'
       description='Inspect backend activity with server-side pagination and filters.'
     >
-      <Toolbar query={query} onChange={setQuery} defaultQuery={defaultQuery}>
+      <Toolbar
+        query={query}
+        onChange={setQuery}
+        defaultQuery={defaultQuery}
+        showDateRange
+      >
         <Select
           value={query.actorType ?? 'all'}
           onValueChange={(value) =>

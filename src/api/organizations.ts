@@ -39,6 +39,8 @@ export async function listOrganizations(params: OrganizationListQuery) {
       sort: page.sort,
       search: params.search || undefined,
       is_suspended: params.isSuspended,
+      created_from: params.createdFrom,
+      created_to: params.createdTo,
     },
   })
 

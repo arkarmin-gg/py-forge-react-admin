@@ -17,4 +17,6 @@ export const defaultQuery: QueryState = {
   search: '',
   sortBy: 'createdAt',
   sortOrder: 'DESC',
+  createdFrom: '',
+  createdTo: '',
 }

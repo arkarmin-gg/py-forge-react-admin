@@ -82,7 +82,12 @@ export function OrganizationsPage() {
         )
       }
     >
-      <Toolbar query={query} onChange={setQuery} defaultQuery={defaultQuery}>
+      <Toolbar
+        query={query}
+        onChange={setQuery}
+        defaultQuery={defaultQuery}
+        showDateRange
+      >
         <Select
           value={String(query.isSuspended ?? 'all')}
           onValueChange={(value) =>

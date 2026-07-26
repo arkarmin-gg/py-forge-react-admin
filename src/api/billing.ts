@@ -47,6 +47,8 @@ export async function listPlans(params: ListQuery) {
       offset: page.offset,
       sort: page.sort,
       search: params.search || undefined,
+      created_from: params.createdFrom,
+      created_to: params.createdTo,
     },
   })
 
@@ -105,6 +107,8 @@ export async function listSubscriptions(params: SubscriptionListQuery) {
       organization_id: params.organizationId,
       plan_id: params.planId,
       status: params.status,
+      created_from: params.createdFrom,
+      created_to: params.createdTo,
     },
   })
 

@@ -70,7 +70,12 @@ export function AdminsPage() {
         )
       }
     >
-      <Toolbar query={query} onChange={setQuery} defaultQuery={defaultQuery}>
+      <Toolbar
+        query={query}
+        onChange={setQuery}
+        defaultQuery={defaultQuery}
+        showDateRange
+      >
         <Select
           value={String(query.isBanned ?? 'all')}
           onValueChange={(value) =>

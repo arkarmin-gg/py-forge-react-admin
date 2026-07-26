@@ -14,6 +14,8 @@ export type ListQuery = {
   search?: string
   sortBy?: string
   sortOrder?: 'ASC' | 'DESC'
+  createdFrom?: string
+  createdTo?: string
 }
 
 export type Module = {
@@ -107,6 +109,52 @@ export type HealthStatus = {
   appName?: string
   version?: string
   timestamp?: string
+}
+
+export type DashboardWindow = {
+  fromAt: string
+  toAt: string
+  timezone: string
+}
+
+export type ScanTrendPoint = {
+  date: string
+  scanCount: number
+}
+
+export type SubscriptionStatusCount = {
+  status: string
+  count: number
+}
+
+export type PlatformTopOrganization = {
+  organizationId: string
+  organizationName: string
+  scanCount: number
+}
+
+export type PlatformTopBranch = {
+  branchId: string
+  branchName: string
+  organizationId: string
+  organizationName: string
+  scanCount: number
+}
+
+export type PlatformDashboard = {
+  window: DashboardWindow
+  activeOrganizations: number
+  suspendedOrganizations: number
+  totalBranches: number
+  totalTables: number
+  totalCategories: number
+  totalItems: number
+  subscriptionStatuses: SubscriptionStatusCount[]
+  monthlyRecurringRevenue: string
+  scanCount: number
+  scanTrend: ScanTrendPoint[]
+  topOrganizations: PlatformTopOrganization[]
+  topBranches: PlatformTopBranch[]
 }
 
 type ActionType = 'CREATE' | 'READ' | 'UPDATE' | 'DELETE'
@@ -233,6 +281,52 @@ export type ActivityLogWire = {
   created_at: string
 }
 
+export type DashboardWindowWire = {
+  from_at: string
+  to_at: string
+  timezone: string
+}
+
+export type ScanTrendPointWire = {
+  date: string
+  scan_count: number
+}
+
+export type SubscriptionStatusCountWire = {
+  status: string
+  count: number
+}
+
+export type PlatformTopOrganizationWire = {
+  organization_id: string
+  organization_name: string
+  scan_count: number
+}
+
+export type PlatformTopBranchWire = {
+  branch_id: string
+  branch_name: string
+  organization_id: string
+  organization_name: string
+  scan_count: number
+}
+
+export type PlatformDashboardWire = {
+  window: DashboardWindowWire
+  active_organizations: number
+  suspended_organizations: number
+  total_branches: number
+  total_tables: number
+  total_categories: number
+  total_items: number
+  subscription_statuses: SubscriptionStatusCountWire[]
+  monthly_recurring_revenue: string
+  scan_count: number
+  scan_trend: ScanTrendPointWire[]
+  top_organizations: PlatformTopOrganizationWire[]
+  top_branches: PlatformTopBranchWire[]
+}
+
 export type AdminPageWire = Page<AdminWire>
 export type RolePageWire = Page<RoleWire>
 export type ActivityLogPageWire = Page<ActivityLogWire>
@@ -325,6 +419,46 @@ export function toActivityLog(log: ActivityLogWire): ActivityLog {
     ipAddress: log.ip_address,
     userAgent: log.user_agent,
     createdAt: log.created_at,
+  }
+}
+
+export function toPlatformDashboard(
+  dashboard: PlatformDashboardWire
+): PlatformDashboard {
+  return {
+    window: {
+      fromAt: dashboard.window.from_at,
+      toAt: dashboard.window.to_at,
+      timezone: dashboard.window.timezone,
+    },
+    activeOrganizations: dashboard.active_organizations,
+    suspendedOrganizations: dashboard.suspended_organizations,
+    totalBranches: dashboard.total_branches,
+    totalTables: dashboard.total_tables,
+    totalCategories: dashboard.total_categories,
+    totalItems: dashboard.total_items,
+    subscriptionStatuses: dashboard.subscription_statuses.map((item) => ({
+      status: item.status,
+      count: item.count,
+    })),
+    monthlyRecurringRevenue: dashboard.monthly_recurring_revenue,
+    scanCount: dashboard.scan_count,
+    scanTrend: dashboard.scan_trend.map((point) => ({
+      date: point.date,
+      scanCount: point.scan_count,
+    })),
+    topOrganizations: dashboard.top_organizations.map((organization) => ({
+      organizationId: organization.organization_id,
+      organizationName: organization.organization_name,
+      scanCount: organization.scan_count,
+    })),
+    topBranches: dashboard.top_branches.map((branch) => ({
+      branchId: branch.branch_id,
+      branchName: branch.branch_name,
+      organizationId: branch.organization_id,
+      organizationName: branch.organization_name,
+      scanCount: branch.scan_count,
+    })),
   }
 }
 

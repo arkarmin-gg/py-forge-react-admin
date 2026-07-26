@@ -4,6 +4,7 @@ import {
   toActivityLog,
   toAdmin,
   toPaginated,
+  toPlatformDashboard,
   toPermission,
   toRole,
   toSetting,
@@ -13,6 +14,7 @@ import {
   type AdminWire,
   type ListQuery,
   type PermissionWire,
+  type PlatformDashboardWire,
   type RolePageWire,
   type RoleWire,
   type Setting,
@@ -21,6 +23,13 @@ import {
 } from './types'
 
 type AdminListQuery = ListQuery & { roleId?: string; isBanned?: boolean }
+
+type DashboardQuery = {
+  from?: string
+  to?: string
+  timezone?: string
+  limit?: number
+}
 
 export type LogQuery = ListQuery & {
   actorType?: string
@@ -56,6 +65,21 @@ export async function getHealth() {
   })
 }
 
+export async function getPlatformDashboard(params: DashboardQuery = {}) {
+  const data = await apiRequest<PlatformDashboardWire>({
+    method: 'GET',
+    url: '/admin/analytics/dashboard',
+    query: {
+      from: params.from,
+      to: params.to,
+      timezone: params.timezone,
+      limit: params.limit,
+    },
+  })
+
+  return toPlatformDashboard(data)
+}
+
 export async function listAdmins(params: AdminListQuery) {
   const page = getPaginationQuery(params)
   const data = await apiRequest<AdminPageWire>({
@@ -68,6 +92,8 @@ export async function listAdmins(params: AdminListQuery) {
       search: params.search || undefined,
       is_banned: params.isBanned,
       role_ids: params.roleId ? [params.roleId] : undefined,
+      created_from: params.createdFrom,
+      created_to: params.createdTo,
     },
   })
 
@@ -124,6 +150,8 @@ export async function listRoles(params: ListQuery) {
       offset: page.offset,
       sort: page.sort,
       search: params.search || undefined,
+      created_from: params.createdFrom,
+      created_to: params.createdTo,
     },
   })
 
@@ -182,6 +210,8 @@ export async function listLogs(params: LogQuery) {
       status: params.status,
       resource_type: params.resourceType,
       resource_id: params.resourceId,
+      created_from: params.createdFrom,
+      created_to: params.createdTo,
     },
   })
 

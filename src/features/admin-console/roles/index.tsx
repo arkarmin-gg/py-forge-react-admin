@@ -60,7 +60,12 @@ export function RolesPage() {
         )
       }
     >
-      <Toolbar query={query} onChange={setQuery} defaultQuery={defaultQuery} />
+      <Toolbar
+        query={query}
+        onChange={setQuery}
+        defaultQuery={defaultQuery}
+        showDateRange
+      />
       <div className='overflow-hidden rounded-md border'>
         <Table>
           <TableHeader>

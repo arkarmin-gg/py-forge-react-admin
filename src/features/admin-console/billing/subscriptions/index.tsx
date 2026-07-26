@@ -58,7 +58,12 @@ export function SubscriptionsTab() {
   return (
     <div className='flex flex-col gap-4'>
       <div className='flex flex-wrap items-center justify-between gap-3'>
-        <Toolbar query={query} onChange={setQuery} defaultQuery={defaultQuery}>
+        <Toolbar
+          query={query}
+          onChange={setQuery}
+          defaultQuery={defaultQuery}
+          showDateRange
+        >
           <OrganizationCombobox
             value={query.organizationId}
             label={organizationLabel}
