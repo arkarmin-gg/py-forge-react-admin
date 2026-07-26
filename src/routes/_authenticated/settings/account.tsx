@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { AccountSettingsPage } from '@/features/admin-console/shared'
+import { AccountSettingsPage } from '@/features/admin-console/settings/account'
 
 export const Route = createFileRoute('/_authenticated/settings/account')({
   component: AccountSettingsPage,

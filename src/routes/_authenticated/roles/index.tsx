@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { RolesPage } from '@/features/admin-console/shared'
+import { RolesPage } from '@/features/admin-console/roles'
 
 export const Route = createFileRoute('/_authenticated/roles/')({
   component: RolesPage,
