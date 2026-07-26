@@ -3,7 +3,6 @@ import {
   Building2,
   CreditCard,
   LayoutDashboard,
-  Settings,
   ShieldCheck,
   SlidersHorizontal,
   UserCog,
@@ -32,18 +31,7 @@ export const sidebarData: SidebarData = {
           url: '/',
           icon: LayoutDashboard,
         },
-        {
-          title: 'Admins',
-          url: '/admins',
-          icon: UserCog,
-          permissions: [{ module: 'admins', action: 'read' }],
-        },
-        {
-          title: 'Roles & Permissions',
-          url: '/roles',
-          icon: ShieldCheck,
-          permissions: [{ module: 'rbac', action: 'read' }],
-        },
+
         {
           title: 'Organizations',
           url: '/organizations',
@@ -55,6 +43,23 @@ export const sidebarData: SidebarData = {
           url: '/billing',
           icon: CreditCard,
           permissions: [{ module: 'billing', action: 'read' }],
+        },
+      ],
+    },
+    {
+      title: 'Platform',
+      items: [
+        {
+          title: 'Admins',
+          url: '/admins',
+          icon: UserCog,
+          permissions: [{ module: 'admins', action: 'read' }],
+        },
+        {
+          title: 'Roles & Permissions',
+          url: '/roles',
+          icon: ShieldCheck,
+          permissions: [{ module: 'rbac', action: 'read' }],
         },
         {
           title: 'Logs',
@@ -77,12 +82,12 @@ export const sidebarData: SidebarData = {
           url: '/settings/account',
           icon: SlidersHorizontal,
         },
-        {
-          title: 'SMTP',
-          url: '/settings/smtp',
-          icon: Settings,
-          permissions: [{ module: 'settings', action: 'read' }],
-        },
+        // {
+        //   title: 'SMTP',
+        //   url: '/settings/smtp',
+        //   icon: Settings,
+        //   permissions: [{ module: 'settings', action: 'read' }],
+        // },
       ],
     },
   ],
