@@ -17,6 +17,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Toolbar } from '@/components/toolbar'
+import { TableRowActions } from '@/features/admin-console/components/table-row-actions'
 import { RoleDialog } from '@/features/admin-console/roles/components/role-dialog'
 import { useCan } from '@/features/admin-console/hooks/use-can'
 import { useDebouncedQuery } from '@/features/admin-console/hooks/use-debounced-query'
@@ -85,26 +86,21 @@ export function RolesPage() {
                 <TableCell>{role.rank}</TableCell>
                 <TableCell>{role.permissions?.length ?? 0}</TableCell>
                 <TableCell>
-                  <div className='flex justify-end gap-1'>
-                    {canUpdate && (
-                      <Button
-                        variant='ghost'
-                        size='icon'
-                        onClick={() => setEditing(role)}
-                      >
-                        <Pencil />
-                      </Button>
-                    )}
-                    {canDelete && (
-                      <Button
-                        variant='ghost'
-                        size='icon'
-                        onClick={() => setDeleting(role)}
-                      >
-                        <Trash2 />
-                      </Button>
-                    )}
-                  </div>
+                  <TableRowActions
+                    actions={[
+                      canUpdate && {
+                        label: 'Edit',
+                        icon: <Pencil />,
+                        onSelect: () => setEditing(role),
+                      },
+                      canDelete && {
+                        label: 'Delete',
+                        icon: <Trash2 />,
+                        variant: 'destructive',
+                        onSelect: () => setDeleting(role),
+                      },
+                    ]}
+                  />
                 </TableCell>
               </TableRow>
             ))}

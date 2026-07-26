@@ -25,6 +25,7 @@ import { ConfirmDialog } from '@/components/confirm-dialog'
 import { PageShell } from '@/components/page-shell'
 import { Pagination } from '@/components/pagination'
 import { Toolbar } from '@/components/toolbar'
+import { TableRowActions } from '@/features/admin-console/components/table-row-actions'
 import { AdminDialog } from '@/features/admin-console/admins/components/admin-dialog'
 import { useAdmin } from '@/features/admin-console/hooks/use-admin'
 import { useCan } from '@/features/admin-console/hooks/use-can'
@@ -127,26 +128,22 @@ export function AdminsPage() {
                 <TableCell>{statusBadge(admin.isBanned)}</TableCell>
                 <TableCell>{formatDate(admin.lastLoginAt)}</TableCell>
                 <TableCell>
-                  <div className='flex justify-end gap-1'>
-                    {canUpdate && (
-                      <Button
-                        variant='ghost'
-                        size='icon'
-                        onClick={() => setEditing(admin)}
-                      >
-                        <Pencil />
-                      </Button>
-                    )}
-                    {canDelete && admin.id !== currentAdmin?.id && (
-                      <Button
-                        variant='ghost'
-                        size='icon'
-                        onClick={() => setDeleting(admin)}
-                      >
-                        <Trash2 />
-                      </Button>
-                    )}
-                  </div>
+                  <TableRowActions
+                    actions={[
+                      canUpdate && {
+                        label: 'Edit',
+                        icon: <Pencil />,
+                        onSelect: () => setEditing(admin),
+                      },
+                      canDelete &&
+                        admin.id !== currentAdmin?.id && {
+                          label: 'Delete',
+                          icon: <Trash2 />,
+                          variant: 'destructive',
+                          onSelect: () => setDeleting(admin),
+                        },
+                    ]}
+                  />
                 </TableCell>
               </TableRow>
             ))}

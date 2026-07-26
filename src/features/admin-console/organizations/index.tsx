@@ -29,6 +29,7 @@ import { ConfirmDialog } from '@/components/confirm-dialog'
 import { PageShell } from '@/components/page-shell'
 import { Pagination } from '@/components/pagination'
 import { Toolbar } from '@/components/toolbar'
+import { TableRowActions } from '@/features/admin-console/components/table-row-actions'
 import { useCan } from '@/features/admin-console/hooks/use-can'
 import { useDebouncedQuery } from '@/features/admin-console/hooks/use-debounced-query'
 import { OrganizationDialog } from '@/features/admin-console/organizations/components/organization-dialog'
@@ -129,48 +130,36 @@ export function OrganizationsPage() {
                 <TableCell>{statusBadge(organization.isSuspended)}</TableCell>
                 <TableCell>{formatDate(organization.createdAt)}</TableCell>
                 <TableCell>
-                  <div className='flex justify-end gap-1'>
-                    {canUpdate && (
-                      <Button
-                        variant='ghost'
-                        size='icon'
-                        title={
-                          organization.isSuspended ? 'Unsuspend' : 'Suspend'
-                        }
-                        onClick={() =>
-                          suspend.mutate({
-                            id: organization.id,
-                            isSuspended: !organization.isSuspended,
-                          })
-                        }
-                      >
-                        {organization.isSuspended ? (
+                  <TableRowActions
+                    actions={[
+                      canUpdate && {
+                        label: organization.isSuspended
+                          ? 'Unsuspend'
+                          : 'Suspend',
+                        icon: organization.isSuspended ? (
                           <ShieldCheck />
                         ) : (
                           <ShieldOff />
-                        )}
-                      </Button>
-                    )}
-                    {canUpdate && (
-                      <Button
-                        variant='ghost'
-                        size='icon'
-                        title='Reset user password'
-                        onClick={() => setResetting(organization)}
-                      >
-                        <KeyRound />
-                      </Button>
-                    )}
-                    {canDelete && (
-                      <Button
-                        variant='ghost'
-                        size='icon'
-                        onClick={() => setDeleting(organization)}
-                      >
-                        <Trash2 />
-                      </Button>
-                    )}
-                  </div>
+                        ),
+                        onSelect: () =>
+                          suspend.mutate({
+                            id: organization.id,
+                            isSuspended: !organization.isSuspended,
+                          }),
+                      },
+                      canUpdate && {
+                        label: 'Reset user password',
+                        icon: <KeyRound />,
+                        onSelect: () => setResetting(organization),
+                      },
+                      canDelete && {
+                        label: 'Delete',
+                        icon: <Trash2 />,
+                        variant: 'destructive',
+                        onSelect: () => setDeleting(organization),
+                      },
+                    ]}
+                  />
                 </TableCell>
               </TableRow>
             ))}

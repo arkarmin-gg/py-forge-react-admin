@@ -6,7 +6,6 @@ import { deleteSubscription, listSubscriptions } from '@/api/billing'
 import { SUBSCRIPTION_STATUSES, type Subscription } from '@/api/types'
 import { formatDate, formatEnumLabel } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
@@ -26,6 +25,7 @@ import { ConfirmDialog } from '@/components/confirm-dialog'
 import { Pagination } from '@/components/pagination'
 import { Toolbar } from '@/components/toolbar'
 import { SubscriptionDialog } from '@/features/admin-console/billing/components/subscription-dialog'
+import { TableRowActions } from '@/features/admin-console/components/table-row-actions'
 import { useCan } from '@/features/admin-console/hooks/use-can'
 import { useDebouncedQuery } from '@/features/admin-console/hooks/use-debounced-query'
 import { OrganizationCombobox } from '@/features/admin-console/organizations/components/organization-combobox'
@@ -125,26 +125,21 @@ export function SubscriptionsTab() {
                 </TableCell>
                 <TableCell>{formatDate(subscription.createdAt)}</TableCell>
                 <TableCell>
-                  <div className='flex justify-end gap-1'>
-                    {canUpdate && (
-                      <Button
-                        variant='ghost'
-                        size='icon'
-                        onClick={() => setEditing(subscription)}
-                      >
-                        <Pencil />
-                      </Button>
-                    )}
-                    {canDelete && (
-                      <Button
-                        variant='ghost'
-                        size='icon'
-                        onClick={() => setDeleting(subscription)}
-                      >
-                        <Trash2 />
-                      </Button>
-                    )}
-                  </div>
+                  <TableRowActions
+                    actions={[
+                      canUpdate && {
+                        label: 'Edit',
+                        icon: <Pencil />,
+                        onSelect: () => setEditing(subscription),
+                      },
+                      canDelete && {
+                        label: 'Delete',
+                        icon: <Trash2 />,
+                        variant: 'destructive',
+                        onSelect: () => setDeleting(subscription),
+                      },
+                    ]}
+                  />
                 </TableCell>
               </TableRow>
             ))}

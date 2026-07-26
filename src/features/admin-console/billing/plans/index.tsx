@@ -17,6 +17,7 @@ import {
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { Pagination } from '@/components/pagination'
 import { Toolbar } from '@/components/toolbar'
+import { TableRowActions } from '@/features/admin-console/components/table-row-actions'
 import { useCan } from '@/features/admin-console/hooks/use-can'
 import { useDebouncedQuery } from '@/features/admin-console/hooks/use-debounced-query'
 import { PlanDialog } from '@/features/admin-console/billing/components/plan-dialog'
@@ -81,26 +82,21 @@ export function PlansTab() {
                 <TableCell>{plan.monthlyPrice}</TableCell>
                 <TableCell>{formatDate(plan.createdAt)}</TableCell>
                 <TableCell>
-                  <div className='flex justify-end gap-1'>
-                    {canUpdate && (
-                      <Button
-                        variant='ghost'
-                        size='icon'
-                        onClick={() => setEditing(plan)}
-                      >
-                        <Pencil />
-                      </Button>
-                    )}
-                    {canDelete && (
-                      <Button
-                        variant='ghost'
-                        size='icon'
-                        onClick={() => setDeleting(plan)}
-                      >
-                        <Trash2 />
-                      </Button>
-                    )}
-                  </div>
+                  <TableRowActions
+                    actions={[
+                      canUpdate && {
+                        label: 'Edit',
+                        icon: <Pencil />,
+                        onSelect: () => setEditing(plan),
+                      },
+                      canDelete && {
+                        label: 'Delete',
+                        icon: <Trash2 />,
+                        variant: 'destructive',
+                        onSelect: () => setDeleting(plan),
+                      },
+                    ]}
+                  />
                 </TableCell>
               </TableRow>
             ))}

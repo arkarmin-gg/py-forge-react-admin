@@ -6,7 +6,6 @@ import type { ActivityLog } from '@/api/types'
 import { formatDate } from '@/lib/utils'
 import { Pagination } from '@/components/pagination'
 import { PageShell } from '@/components/page-shell'
-import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -30,6 +29,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Toolbar } from '@/components/toolbar'
+import { TableRowActions } from '@/features/admin-console/components/table-row-actions'
 import { useDebouncedQuery } from '@/features/admin-console/hooks/use-debounced-query'
 import { defaultQuery, type QueryState } from '@/features/admin-console/types'
 import { statusBadge } from '@/features/admin-console/utils'
@@ -156,13 +156,15 @@ export function LogsPage() {
                 <TableCell>{log.ipAddress ?? '-'}</TableCell>
                 <TableCell>{formatDate(log.createdAt)}</TableCell>
                 <TableCell>
-                  <Button
-                    variant='ghost'
-                    size='icon'
-                    onClick={() => setViewing(log)}
-                  >
-                    <Eye />
-                  </Button>
+                  <TableRowActions
+                    actions={[
+                      {
+                        label: 'View details',
+                        icon: <Eye />,
+                        onSelect: () => setViewing(log),
+                      },
+                    ]}
+                  />
                 </TableCell>
               </TableRow>
             ))}
