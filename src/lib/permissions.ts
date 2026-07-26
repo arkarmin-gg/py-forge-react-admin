@@ -1,4 +1,4 @@
-import type { CurrentAdmin, Permission } from '@/api/types'
+import type { CurrentAdmin } from '@/api/types'
 
 type PermissionVerb = 'create' | 'read' | 'update' | 'delete'
 
@@ -34,9 +34,4 @@ export function hasAnyPermission(
   return checks.some((check) =>
     hasPermission(admin, check.module, check.action)
   )
-}
-
-export function permissionLabel(permission: Permission) {
-  const module = permission.module?.name ?? permission.module?.code ?? 'Module'
-  return `${module}: ${permission.action.toLowerCase()}`
 }

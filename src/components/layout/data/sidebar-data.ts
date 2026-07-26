@@ -16,7 +16,7 @@ export const sidebarData: SidebarData = {
   },
   teams: [
     {
-      name: 'Py Forge',
+      name: 'E-Menu MM',
       logo: ShieldCheck,
       plan: 'Admin Console',
     },

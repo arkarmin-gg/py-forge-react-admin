@@ -1,5 +1,5 @@
-import { AxiosError } from 'axios'
 import { toast } from 'sonner'
+import { ApiError } from '@/api/client'
 
 export function handleServerError(error: unknown) {
   if (import.meta.env.DEV) {
@@ -18,8 +18,9 @@ export function handleServerError(error: unknown) {
     errMsg = 'No content.'
   }
 
-  if (error instanceof AxiosError) {
-    const data = error.response?.data
+  if (error instanceof ApiError) {
+    const data = error.data
+
     const title =
       data && typeof data === 'object' && 'title' in data
         ? data.title
@@ -28,8 +29,16 @@ export function handleServerError(error: unknown) {
       data && typeof data === 'object' && 'message' in data
         ? data.message
         : undefined
+    const detail =
+      data && typeof data === 'object' && 'detail' in data
+        ? data.detail
+        : undefined
+
+    if (typeof detail === 'string' && detail.length > 0) errMsg = detail
     if (typeof title === 'string' && title.length > 0) errMsg = title
     if (typeof message === 'string' && message.length > 0) errMsg = message
+  } else if (error instanceof Error && error.message.length > 0) {
+    errMsg = error.message
   }
 
   toast.error(errMsg)

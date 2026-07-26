@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { useAuthStore } from '@/stores/auth-store'
+import { getInitials } from '@/lib/utils'
 import useDialogState from '@/hooks/use-dialog-state'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -18,13 +19,7 @@ import { SignOutDialog } from '@/components/sign-out-dialog'
 export function ProfileDropdown() {
   const [open, setOpen] = useDialogState()
   const user = useAuthStore((state) => state.auth.user)
-  const initials =
-    user?.fullName
-      ?.split(' ')
-      .map((part) => part[0])
-      .join('')
-      .slice(0, 2)
-      .toUpperCase() || 'AD'
+  const initials = getInitials(user?.fullName)
 
   return (
     <>

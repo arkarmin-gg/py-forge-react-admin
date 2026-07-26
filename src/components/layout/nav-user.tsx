@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import { BadgeCheck, ChevronsUpDown, LogOut } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth-store'
+import { getInitials } from '@/lib/utils'
 import useDialogState from '@/hooks/use-dialog-state'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -24,13 +25,7 @@ export function NavUser() {
   const { isMobile } = useSidebar()
   const [open, setOpen] = useDialogState()
   const user = useAuthStore((state) => state.auth.user)
-  const initials =
-    user?.fullName
-      ?.split(' ')
-      .map((part) => part[0])
-      .join('')
-      .slice(0, 2)
-      .toUpperCase() || 'AD'
+  const initials = getInitials(user?.fullName)
 
   return (
     <>

@@ -10,7 +10,6 @@ import {
   Plus,
   Search,
   Trash2,
-  X,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -20,8 +19,10 @@ import {
   createAdmin,
   createRole,
   deleteAdmin,
+  deleteAdminProfileImage,
   deleteRole,
   getHealth,
+  getRole,
   getSmtpSettings,
   listAdmins,
   listLogs,
@@ -32,21 +33,25 @@ import {
   updateRole,
   updateSmtpSettings,
 } from '@/api/admin'
-import { changeCurrentPassword, updateCurrentAdmin } from '@/api/auth'
+import {
+  changeCurrentPassword,
+  deleteCurrentAdminProfileImage,
+  updateCurrentAdmin,
+} from '@/api/auth'
 import type {
   ActivityLog,
   Admin,
-  CurrentAdmin,
   ListQuery,
   Permission,
   Role,
 } from '@/api/types'
 import { useAuthStore } from '@/stores/auth-store'
-import { hasAnyPermission, permissionLabel } from '@/lib/permissions'
-import { cn } from '@/lib/utils'
+import { hasAnyPermission } from '@/lib/permissions'
+import { cn, getInitials } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Command,
   CommandEmpty,
@@ -87,6 +92,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Textarea } from '@/components/ui/textarea'
+import { AvatarUpload } from '@/components/avatar-upload'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { Header } from '@/components/layout/header'
@@ -259,20 +265,6 @@ function Pagination({
   )
 }
 
-function FileInput({
-  onChange,
-}: {
-  onChange: (file: File | undefined) => void
-}) {
-  return (
-    <Input
-      type='file'
-      accept='image/*'
-      onChange={(event) => onChange(event.target.files?.[0])}
-    />
-  )
-}
-
 function useCan(
   checks: { module: string; action: 'create' | 'read' | 'update' | 'delete' }[]
 ) {
@@ -286,31 +278,55 @@ function RoleCombobox({
   label,
   onChange,
   allowClear,
+  modal = false,
+  portalled = true,
   placeholder = 'Choose role',
 }: {
   value?: string
   label?: string
   onChange: (roleId: string | undefined, role?: Role) => void
   allowClear?: boolean
+  modal?: boolean
+  portalled?: boolean
   placeholder?: string
 }) {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [pickedLabel, setPickedLabel] = useState<string>()
+
   const debouncedSearch = useDebouncedValue(search)
+
+  const shouldSearchRoles = open
+  const shouldResolveRole = Boolean(value) && !label && !pickedLabel
+
   const roles = useQuery({
     queryKey: ['roles', 'search', debouncedSearch],
     queryFn: () => searchRoles(debouncedSearch),
-    enabled: open,
+    enabled: shouldSearchRoles,
   })
-  const displayLabel = pickedLabel ?? label
+
+  const resolvedRole = useQuery({
+    queryKey: ['roles', 'resolve', value],
+    queryFn: () => getRole(value!),
+    enabled: shouldResolveRole,
+  })
+
+  const displayLabel = value
+    ? (pickedLabel ?? label ?? resolvedRole.data?.name)
+    : undefined
+
+  const isResolvingSelectedRole = shouldResolveRole && resolvedRole.isFetching
 
   return (
     <Popover
+      modal={modal}
       open={open}
       onOpenChange={(next) => {
         setOpen(next)
-        if (!next) setSearch('')
+
+        if (!next) {
+          setSearch('')
+        }
       }}
     >
       <PopoverTrigger asChild>
@@ -322,22 +338,32 @@ function RoleCombobox({
           className='justify-between font-normal'
         >
           <span className={cn(!displayLabel && 'text-muted-foreground')}>
-            {displayLabel ?? placeholder}
+            {isResolvingSelectedRole
+              ? 'Loading role...'
+              : (displayLabel ?? placeholder)}
           </span>
+
           <ChevronsUpDown className='size-4 opacity-50' />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className='w-64 p-0' align='start'>
+
+      <PopoverContent className='w-64 p-0' align='start' portalled={portalled}>
         <Command shouldFilter={false}>
           <CommandInput
             placeholder='Search roles...'
             value={search}
             onValueChange={setSearch}
           />
+
           <CommandList>
             <CommandEmpty>
-              {roles.isFetching ? 'Searching...' : 'No roles found.'}
+              {roles.isFetching
+                ? 'Searching...'
+                : roles.isError
+                  ? 'Failed to load roles.'
+                  : 'No roles found.'}
             </CommandEmpty>
+
             <CommandGroup>
               {allowClear && !search && (
                 <CommandItem
@@ -357,6 +383,7 @@ function RoleCombobox({
                   All roles
                 </CommandItem>
               )}
+
               {roles.data?.items.map((role) => (
                 <CommandItem
                   key={role.id}
@@ -373,6 +400,7 @@ function RoleCombobox({
                       value === role.id ? 'opacity-100' : 'opacity-0'
                     )}
                   />
+
                   {role.name}
                 </CommandItem>
               ))}
@@ -384,17 +412,18 @@ function RoleCombobox({
   )
 }
 
-/** Multi-select combobox that filters client-side over the full permissions list. */
+/** Inline checkbox matrix grouped by module, with per-module select-all. */
 function PermissionPicker({
   permissions,
   selected,
   onToggle,
+  onToggleModule,
 }: {
   permissions: Permission[]
   selected: Set<string>
   onToggle: (permissionId: string) => void
+  onToggleModule: (modulePermissions: Permission[], checked: boolean) => void
 }) {
-  const [open, setOpen] = useState(false)
   const grouped = permissions.reduce<Record<string, Permission[]>>(
     (acc, permission) => {
       const key = permission.module?.name ?? 'Other'
@@ -404,75 +433,51 @@ function PermissionPicker({
     },
     {}
   )
-  const selectedPermissions = permissions.filter((permission) =>
-    selected.has(permission.id)
-  )
 
   return (
-    <div className='grid gap-2'>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            type='button'
-            variant='outline'
-            role='combobox'
-            aria-expanded={open}
-            className='justify-between font-normal'
+    <div className='divide-y rounded-md border'>
+      {Object.entries(grouped).map(([moduleName, modulePermissions]) => {
+        const selectedCount = modulePermissions.filter((permission) =>
+          selected.has(permission.id)
+        ).length
+        const moduleChecked =
+          selectedCount === modulePermissions.length
+            ? true
+            : selectedCount > 0
+              ? 'indeterminate'
+              : false
+
+        return (
+          <div
+            key={moduleName}
+            className='flex flex-wrap items-center gap-x-4 gap-y-2 p-3'
           >
-            {selected.size > 0
-              ? `${selected.size} permission${selected.size === 1 ? '' : 's'} selected`
-              : 'Select permissions'}
-            <ChevronsUpDown className='size-4 opacity-50' />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className='w-md p-0' align='start'>
-          <Command>
-            <CommandInput placeholder='Search permissions...' />
-            <CommandList className='max-h-80'>
-              <CommandEmpty>No permissions found.</CommandEmpty>
-              {Object.entries(grouped).map(
-                ([moduleName, modulePermissions]) => (
-                  <CommandGroup key={moduleName} heading={moduleName}>
-                    {modulePermissions.map((permission) => (
-                      <CommandItem
-                        key={permission.id}
-                        value={`${moduleName} ${permissionLabel(permission)}`}
-                        onSelect={() => onToggle(permission.id)}
-                      >
-                        <Check
-                          className={cn(
-                            'size-4',
-                            selected.has(permission.id)
-                              ? 'opacity-100'
-                              : 'opacity-0'
-                          )}
-                        />
-                        {permissionLabel(permission)}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                )
-              )}
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
-      {selectedPermissions.length > 0 && (
-        <div className='flex flex-wrap gap-1'>
-          {selectedPermissions.map((permission) => (
-            <Badge key={permission.id} variant='secondary' className='gap-1'>
-              {permissionLabel(permission)}
-              <button
-                type='button'
-                onClick={() => onToggle(permission.id)}
-                className='rounded-full hover:bg-muted-foreground/20'
-              >
-                <X className='size-3' />
-              </button>
-            </Badge>
-          ))}
-        </div>
-      )}
+            <label className='flex min-w-32 items-center gap-2 font-medium'>
+              <Checkbox
+                checked={moduleChecked}
+                onCheckedChange={(checked) =>
+                  onToggleModule(modulePermissions, checked === true)
+                }
+              />
+              {moduleName}
+            </label>
+            <div className='flex flex-wrap gap-x-4 gap-y-2'>
+              {modulePermissions.map((permission) => (
+                <label
+                  key={permission.id}
+                  className='flex items-center gap-2 text-sm text-muted-foreground'
+                >
+                  <Checkbox
+                    checked={selected.has(permission.id)}
+                    onCheckedChange={() => onToggle(permission.id)}
+                  />
+                  {permission.action.toLowerCase()}
+                </label>
+              ))}
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -480,6 +485,8 @@ function PermissionPicker({
 export function OverviewPage() {
   const admin = useAdmin()
   const health = useQuery({ queryKey: ['health'], queryFn: getHealth })
+  const status =
+    typeof health.data?.status === 'string' ? health.data.status : 'OK'
   const quickLinks = [
     {
       label: 'Admins',
@@ -511,7 +518,7 @@ export function OverviewPage() {
           <CardContent className='flex items-center gap-2'>
             <Activity className='size-5 text-muted-foreground' />
             <span className='font-medium'>
-              {health.isLoading ? 'Checking...' : (health.data?.status ?? 'OK')}
+              {health.isLoading ? 'Checking...' : status}
             </span>
           </CardContent>
         </Card>
@@ -642,7 +649,7 @@ export function AdminsPage() {
               <TableRow key={admin.id}>
                 <TableCell className='font-medium'>{admin.fullName}</TableCell>
                 <TableCell>{admin.email}</TableCell>
-                <TableCell>{admin.role?.name ?? admin.roleId}</TableCell>
+                <TableCell>{admin.roleName ?? admin.roleId}</TableCell>
                 <TableCell>{statusBadge(admin.isBanned)}</TableCell>
                 <TableCell>{formatDate(admin.lastLoginAt)}</TableCell>
                 <TableCell>
@@ -688,6 +695,7 @@ export function AdminsPage() {
         key={editing?.id ?? 'new'}
         open={Boolean(editing)}
         admin={editing}
+        currentAdmin={currentAdmin}
         onOpenChange={(open) => !open && setEditing(null)}
       />
       <ConfirmDialog
@@ -706,10 +714,12 @@ export function AdminsPage() {
 function AdminDialog({
   open,
   admin,
+  currentAdmin,
   onOpenChange,
 }: {
   open: boolean
   admin: Admin | null
+  currentAdmin: Admin | null
   onOpenChange: (open: boolean) => void
 }) {
   const queryClient = useQueryClient()
@@ -750,6 +760,27 @@ function AdminDialog({
             </DialogDescription>
           </DialogHeader>
           <div className='grid gap-3'>
+            <Label>Profile image</Label>
+            <AvatarUpload
+              name={admin?.fullName}
+              fallback={getInitials(admin?.fullName)}
+              initialImageUrl={admin?.profileImageUrl}
+              file={profileImage}
+              onFileChange={setProfileImage}
+              onRemove={
+                isEdit && admin?.id
+                  ? async () => {
+                      await deleteAdminProfileImage(admin.id)
+                      await queryClient.invalidateQueries({
+                        queryKey: ['admins'],
+                      })
+                      toast.success('Profile photo removed.')
+                    }
+                  : undefined
+              }
+              size='lg'
+            />
+
             <Label>Full name</Label>
             <Input
               name='fullName'
@@ -768,15 +799,17 @@ function AdminDialog({
             <Label>Role</Label>
             <RoleCombobox
               value={roleId}
-              label={admin?.role?.name}
+              label={admin?.role?.name ?? admin?.roleName}
+              modal
+              portalled={false}
               onChange={(nextRoleId) => setRoleId(nextRoleId)}
             />
-            <Label>Profile image</Label>
-            <FileInput onChange={setProfileImage} />
-            <label className='flex items-center gap-2 text-sm'>
-              <Switch name='isBanned' defaultChecked={admin?.isBanned} />
-              Banned
-            </label>
+            {admin?.id !== currentAdmin?.id && (
+              <label className='flex items-center gap-2 text-sm'>
+                <Switch name='isBanned' defaultChecked={admin?.isBanned} />
+                Banned
+              </label>
+            )}
           </div>
           <DialogFooter>
             <Button
@@ -948,6 +981,20 @@ function RoleDialog({
     })
   }
 
+  function toggleModulePermissions(
+    modulePermissions: Permission[],
+    checked: boolean
+  ) {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      for (const permission of modulePermissions) {
+        if (checked) next.add(permission.id)
+        else next.delete(permission.id)
+      }
+      return next
+    })
+  }
+
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const form = new FormData(event.currentTarget)
@@ -990,6 +1037,7 @@ function RoleDialog({
               permissions={permissions}
               selected={selected}
               onToggle={togglePermission}
+              onToggleModule={toggleModulePermissions}
             />
           </div>
           <DialogFooter>
@@ -1267,7 +1315,7 @@ export function ProfileSettingsPage() {
   const mutation = useMutation({
     mutationFn: updateCurrentAdmin,
     onSuccess: async (user) => {
-      auth.setUser(user as CurrentAdmin)
+      auth.setUser(user)
       toast.success('Profile updated.')
       await queryClient.invalidateQueries({ queryKey: ['auth', 'me'] })
     },
@@ -1288,6 +1336,23 @@ export function ProfileSettingsPage() {
       <Card>
         <CardContent className='pt-6'>
           <form onSubmit={submit} className='grid max-w-xl gap-4'>
+            <Label>Profile image</Label>
+            <AvatarUpload
+              name={auth.user?.fullName}
+              fallback={getInitials(auth.user?.fullName)}
+              initialImageUrl={auth.user?.profileImageUrl}
+              file={profileImage}
+              onFileChange={setProfileImage}
+              onRemove={async () => {
+                const user = await deleteCurrentAdminProfileImage()
+                auth.setUser(user)
+                await queryClient.invalidateQueries({
+                  queryKey: ['auth', 'me'],
+                })
+                toast.success('Profile photo removed.')
+              }}
+              size='lg'
+            />
             <Label>Full name</Label>
             <Input
               name='fullName'
@@ -1301,8 +1366,7 @@ export function ProfileSettingsPage() {
               defaultValue={auth.user?.email ?? ''}
               required
             />
-            <Label>Profile image</Label>
-            <FileInput onChange={setProfileImage} />
+
             <Button className='w-fit' disabled={mutation.isPending}>
               {mutation.isPending && <Loader2 className='animate-spin' />}
               Save profile
