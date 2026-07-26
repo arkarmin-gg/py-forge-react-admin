@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { Pencil, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { deleteSubscription, listSubscriptions } from '@/api/billing'
 import { SUBSCRIPTION_STATUSES, type Subscription } from '@/api/types'
@@ -37,7 +37,7 @@ export function SubscriptionsTab() {
   const [organizationLabel, setOrganizationLabel] = useState<string>()
   const [editing, setEditing] = useState<Subscription | null>(null)
   const [deleting, setDeleting] = useState<Subscription | null>(null)
-  const canCreate = useCan([{ module: 'billing', action: 'create' }])
+
   const canUpdate = useCan([{ module: 'billing', action: 'update' }])
   const canDelete = useCan([{ module: 'billing', action: 'delete' }])
 
