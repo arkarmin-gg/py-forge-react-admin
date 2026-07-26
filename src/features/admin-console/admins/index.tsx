@@ -6,9 +6,6 @@ import { deleteAdmin, listAdmins } from '@/api/admin'
 import type { Admin } from '@/api/types'
 import { formatDate } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { ConfirmDialog } from '@/components/confirm-dialog'
-import { Pagination } from '@/components/pagination'
-import { PageShell } from '@/components/page-shell'
 import {
   Select,
   SelectContent,
@@ -24,12 +21,15 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { ConfirmDialog } from '@/components/confirm-dialog'
+import { PageShell } from '@/components/page-shell'
+import { Pagination } from '@/components/pagination'
 import { Toolbar } from '@/components/toolbar'
 import { AdminDialog } from '@/features/admin-console/admins/components/admin-dialog'
-import { RoleCombobox } from '@/features/admin-console/admins/components/role-combobox'
 import { useAdmin } from '@/features/admin-console/hooks/use-admin'
 import { useCan } from '@/features/admin-console/hooks/use-can'
 import { useDebouncedQuery } from '@/features/admin-console/hooks/use-debounced-query'
+import { RoleCombobox } from '@/features/admin-console/roles/components/role-combobox'
 import { defaultQuery, type QueryState } from '@/features/admin-console/types'
 import { statusBadge } from '@/features/admin-console/utils'
 

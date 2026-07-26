@@ -48,7 +48,6 @@ export type Admin = {
   roleName: string
   role?: Role
   isBanned: boolean
-  isTwoFactorEnabled?: boolean
   lastLoginAt?: string | null
   lastLogoutAt?: string | null
   createdAt: string
@@ -95,11 +94,9 @@ export type ActivityLog = {
   resourceId?: string | null
   ipAddress?: string | null
   userAgent?: string | null
-  device?: string | null
-  browser?: string | null
-  os?: string | null
-  location?: string | null
   status: string
+  oldValue?: Record<string, unknown> | null
+  newValue?: Record<string, unknown> | null
   metadata?: Record<string, unknown> | null
   createdAt: string
 }
@@ -190,7 +187,6 @@ export type AdminWire = {
   role_name: string
   role?: RoleWire
   is_banned: boolean
-  is_two_factor_enabled?: boolean
   last_login_at?: string | null
   last_logout_at?: string | null
   created_at: string
@@ -224,6 +220,8 @@ export type ActivityLogWire = {
   description?: string | null
   resource_type?: string | null
   resource_id?: string | null
+  old_value?: Record<string, unknown> | null
+  new_value?: Record<string, unknown> | null
   ip_address?: string | null
   user_agent?: string | null
   device?: string | null
@@ -278,7 +276,6 @@ export function toAdmin(admin: AdminWire): Admin {
     roleName: admin.role_name,
     role: admin.role ? toRole(admin.role) : undefined,
     isBanned: admin.is_banned,
-    isTwoFactorEnabled: admin.is_two_factor_enabled,
     lastLoginAt: admin.last_login_at,
     lastLogoutAt: admin.last_logout_at,
     createdAt: admin.created_at,
@@ -322,6 +319,8 @@ export function toActivityLog(log: ActivityLogWire): ActivityLog {
     resourceType: log.resource_type,
     resourceId: log.resource_id,
     description: log.description,
+    oldValue: log.old_value,
+    newValue: log.new_value,
     metadata: log.meta,
     ipAddress: log.ip_address,
     userAgent: log.user_agent,

@@ -10,7 +10,6 @@ import {
 } from '@/api/admin'
 import type { Admin } from '@/api/types'
 import { getInitials } from '@/lib/utils'
-import { AvatarUpload } from '@/components/avatar-upload'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -23,7 +22,8 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { RoleCombobox } from '@/features/admin-console/admins/components/role-combobox'
+import { AvatarUpload } from '@/components/avatar-upload'
+import { RoleCombobox } from '@/features/admin-console/roles/components/role-combobox'
 
 export function AdminDialog({
   open,
@@ -58,7 +58,7 @@ export function AdminDialog({
       email: String(form.get('email') ?? ''),
       password: String(form.get('password') ?? '') || undefined,
       roleId: roleId ?? '',
-      isBanned: form.get('isBanned') === 'on',
+      isBanned: isEdit ? form.get('isBanned') === 'on' : undefined,
       profileImage,
     })
   }
