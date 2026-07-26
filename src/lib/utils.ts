@@ -36,3 +36,9 @@ export function formatDate(value?: string | null) {
     timeStyle: 'short',
   }).format(new Date(value))
 }
+
+export function formatEnumLabel(value?: string | null): string {
+  if (!value) return ''
+
+  return value.trim().replace(/_+/g, ' ').replace(/\s+/g, ' ').toUpperCase()
+}

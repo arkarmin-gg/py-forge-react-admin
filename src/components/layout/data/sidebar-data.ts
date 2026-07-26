@@ -1,5 +1,7 @@
 import {
   Activity,
+  Building2,
+  CreditCard,
   LayoutDashboard,
   Settings,
   ShieldCheck,
@@ -41,6 +43,18 @@ export const sidebarData: SidebarData = {
           url: '/roles',
           icon: ShieldCheck,
           permissions: [{ module: 'rbac', action: 'read' }],
+        },
+        {
+          title: 'Organizations',
+          url: '/organizations',
+          icon: Building2,
+          permissions: [{ module: 'organizations', action: 'read' }],
+        },
+        {
+          title: 'Billing',
+          url: '/billing',
+          icon: CreditCard,
+          permissions: [{ module: 'billing', action: 'read' }],
         },
         {
           title: 'Logs',

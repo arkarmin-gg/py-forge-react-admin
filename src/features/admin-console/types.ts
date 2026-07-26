@@ -6,6 +6,9 @@ export type QueryState = ListQuery & {
   action?: string
   status?: string
   actorType?: string
+  isSuspended?: boolean
+  organizationId?: string
+  planId?: string
 }
 
 export const defaultQuery: QueryState = {

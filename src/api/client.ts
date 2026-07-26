@@ -3,6 +3,14 @@ import { useAuthStore } from '@/stores/auth-store'
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000/api/v1'
 
+// Requests to these endpoints must never trigger a refresh-and-retry: the
+// refresh endpoint itself would recurse, and a login 401 means bad
+// credentials, not an expired session.
+const AUTH_ENDPOINTS_EXEMPT_FROM_REFRESH = [
+  '/auth/admin/refresh',
+  '/auth/admin/login',
+]
+
 export class ApiError<TData = unknown> extends Error {
   response: Response
   data: TData
@@ -27,13 +35,11 @@ export function getApiOrigin() {
   return new URL(API_BASE_URL).origin
 }
 
-export async function apiRequest<TData = unknown>({
-  method = 'GET',
-  url,
-  query,
-  body,
-  headers,
-}: ApiRequestOptions): Promise<TData> {
+export async function apiRequest<TData = unknown>(
+  options: ApiRequestOptions,
+  isRetry = false
+): Promise<TData> {
+  const { method = 'GET', url, query, body, headers } = options
   const response = await fetch(buildUrl(url, query), {
     method,
     headers: buildHeaders(headers, body),
@@ -42,10 +48,46 @@ export async function apiRequest<TData = unknown>({
 
   const data = await parseResponse(response)
   if (!response.ok) {
+    if (
+      response.status === 401 &&
+      !isRetry &&
+      !AUTH_ENDPOINTS_EXEMPT_FROM_REFRESH.some((path) => url.includes(path))
+    ) {
+      const refreshed = await refreshSession()
+      if (refreshed) return apiRequest<TData>(options, true)
+    }
     throw new ApiError(response, data)
   }
 
   return data as TData
+}
+
+let refreshPromise: Promise<boolean> | null = null
+
+function refreshSession() {
+  refreshPromise ??= performRefresh().finally(() => {
+    refreshPromise = null
+  })
+  return refreshPromise
+}
+
+async function performRefresh(): Promise<boolean> {
+  const refreshToken = useAuthStore.getState().auth.refreshToken
+  if (!refreshToken) return false
+
+  try {
+    // Imported dynamically to avoid a circular import at module init time:
+    // auth.ts imports apiRequest from this module.
+    const { refreshAdmin } = await import('./auth')
+    const token = await refreshAdmin(refreshToken)
+    useAuthStore.getState().auth.setSession({
+      accessToken: token.accessToken,
+      refreshToken: token.refreshToken,
+    })
+    return true
+  } catch {
+    return false
+  }
 }
 
 function buildUrl(url: string, query?: Record<string, unknown>) {

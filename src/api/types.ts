@@ -327,3 +327,207 @@ export function toActivityLog(log: ActivityLogWire): ActivityLog {
     createdAt: log.created_at,
   }
 }
+
+export type Organization = {
+  id: string
+  name: string
+  slug: string
+  isSuspended: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export type OrganizationWire = {
+  id: string
+  name: string
+  slug: string
+  is_suspended: boolean
+  created_at: string
+  updated_at: string
+}
+
+export type OrganizationPageWire = Page<OrganizationWire>
+
+export function toOrganization(organization: OrganizationWire): Organization {
+  return {
+    id: organization.id,
+    name: organization.name,
+    slug: organization.slug,
+    isSuspended: organization.is_suspended,
+    createdAt: organization.created_at,
+    updatedAt: organization.updated_at,
+  }
+}
+
+export type Plan = {
+  id: string
+  name: string
+  maxBranches: number
+  maxItemsPerBranch: number
+  monthlyPrice: string
+  createdAt: string
+}
+
+export type PlanWire = {
+  id: string
+  name: string
+  max_branches: number
+  max_items_per_branch: number
+  monthly_price: string
+  created_at: string
+}
+
+export type PlanPageWire = Page<PlanWire>
+
+export function toPlan(plan: PlanWire): Plan {
+  return {
+    id: plan.id,
+    name: plan.name,
+    maxBranches: plan.max_branches,
+    maxItemsPerBranch: plan.max_items_per_branch,
+    monthlyPrice: plan.monthly_price,
+    createdAt: plan.created_at,
+  }
+}
+
+export const SUBSCRIPTION_STATUSES = ['active', 'canceled', 'past_due']
+
+export type Subscription = {
+  id: string
+  organizationId: string
+  organizationName: string
+  planId: string
+  plan: Plan
+  status: string
+  currentPeriodEnd?: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export type SubscriptionWire = {
+  id: string
+  organization_id: string
+  organization_name: string
+  plan_id: string
+  plan: PlanWire
+  status: string
+  current_period_end?: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type SubscriptionPageWire = Page<SubscriptionWire>
+
+export function toSubscription(subscription: SubscriptionWire): Subscription {
+  return {
+    id: subscription.id,
+    organizationId: subscription.organization_id,
+    organizationName: subscription.organization_name,
+    planId: subscription.plan_id,
+    plan: toPlan(subscription.plan),
+    status: subscription.status,
+    currentPeriodEnd: subscription.current_period_end,
+    createdAt: subscription.created_at,
+    updatedAt: subscription.updated_at,
+  }
+}
+
+// Minimal shapes for the tenant-side entities embedded in an organization
+// onboarding result — the full Branch/TenantUser resources are out of scope
+// (tenant-level, not platform-admin).
+export type OnboardedBranch = {
+  id: string
+  name: string
+  slug: string
+  timezone: string
+}
+
+export type BranchWire = {
+  id: string
+  organization_id: string
+  name: string
+  slug: string
+  timezone: string
+  created_at: string
+  updated_at: string
+}
+
+function toOnboardedBranch(branch: BranchWire): OnboardedBranch {
+  return {
+    id: branch.id,
+    name: branch.name,
+    slug: branch.slug,
+    timezone: branch.timezone,
+  }
+}
+
+export type OnboardedOwner = {
+  id: string
+  fullName: string
+  email: string
+}
+
+export type TenantUserWire = {
+  id: string
+  full_name: string
+  email: string
+  status: string
+  must_reset_password: boolean
+  created_at: string
+  updated_at: string
+}
+
+function toOnboardedOwner(owner: TenantUserWire): OnboardedOwner {
+  return {
+    id: owner.id,
+    fullName: owner.full_name,
+    email: owner.email,
+  }
+}
+
+export type OrganizationOnboardResultWire = {
+  organization: OrganizationWire
+  branch: BranchWire
+  owner: TenantUserWire
+  subscription: SubscriptionWire
+  owner_temporary_password: string
+}
+
+export type OrganizationOnboardResult = {
+  organization: Organization
+  branch: OnboardedBranch
+  owner: OnboardedOwner
+  subscription: Subscription
+  ownerTemporaryPassword: string
+}
+
+export function toOrganizationOnboardResult(
+  data: OrganizationOnboardResultWire
+): OrganizationOnboardResult {
+  return {
+    organization: toOrganization(data.organization),
+    branch: toOnboardedBranch(data.branch),
+    owner: toOnboardedOwner(data.owner),
+    subscription: toSubscription(data.subscription),
+    ownerTemporaryPassword: data.owner_temporary_password,
+  }
+}
+
+export type ResetPasswordResultWire = {
+  user: TenantUserWire
+  temporary_password: string
+}
+
+export type ResetPasswordResult = {
+  user: OnboardedOwner
+  temporaryPassword: string
+}
+
+export function toResetPasswordResult(
+  data: ResetPasswordResultWire
+): ResetPasswordResult {
+  return {
+    user: toOnboardedOwner(data.user),
+    temporaryPassword: data.temporary_password,
+  }
+}

@@ -41,6 +41,20 @@ export async function logout() {
   await apiRequest<void>({ method: 'POST', url: '/auth/admin/logout' })
 }
 
+export async function refreshAdmin(refreshToken: string) {
+  const data = await apiRequest<TokenResponseWire>({
+    method: 'POST',
+    url: '/auth/admin/refresh',
+    body: { refresh_token: refreshToken },
+  })
+
+  return toTokenResponse(data)
+}
+
+export async function deleteCurrentAdmin() {
+  await apiRequest<void>({ method: 'DELETE', url: '/auth/admin/me' })
+}
+
 export async function getCurrentAdmin(): Promise<CurrentAdmin> {
   const data = await apiRequest<CurrentAdminWire>({
     method: 'GET',
