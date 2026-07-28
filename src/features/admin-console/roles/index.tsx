@@ -5,9 +5,6 @@ import { toast } from 'sonner'
 import { deleteRole, listPermissions, listRoles } from '@/api/admin'
 import type { Role } from '@/api/types'
 import { Button } from '@/components/ui/button'
-import { ConfirmDialog } from '@/components/confirm-dialog'
-import { Pagination } from '@/components/pagination'
-import { PageShell } from '@/components/page-shell'
 import {
   Table,
   TableBody,
@@ -16,11 +13,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { ConfirmDialog } from '@/components/confirm-dialog'
+import { PageShell } from '@/components/page-shell'
+import { Pagination } from '@/components/pagination'
 import { Toolbar } from '@/components/toolbar'
 import { TableRowActions } from '@/features/admin-console/components/table-row-actions'
-import { RoleDialog } from '@/features/admin-console/roles/components/role-dialog'
 import { useCan } from '@/features/admin-console/hooks/use-can'
 import { useDebouncedQuery } from '@/features/admin-console/hooks/use-debounced-query'
+import { RoleDialog } from '@/features/admin-console/roles/components/role-dialog'
 import { defaultQuery, type QueryState } from '@/features/admin-console/types'
 
 export function RolesPage() {

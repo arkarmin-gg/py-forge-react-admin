@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
-import { type OrganizationOnboardInput, createOrganization } from '@/api/organizations'
+import {
+  type OrganizationOnboardInput,
+  createOrganization,
+} from '@/api/organizations'
 import type { OrganizationOnboardResult, Plan } from '@/api/types'
 import { Button } from '@/components/ui/button'
-import { CopyField } from '@/components/copy-field'
 import {
   Dialog,
   DialogContent,
@@ -16,6 +18,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
+import { CopyField } from '@/components/copy-field'
 import { PlanCombobox } from '@/features/admin-console/billing/components/plan-combobox'
 
 export function OrganizationDialog({
@@ -69,8 +72,8 @@ export function OrganizationDialog({
           <DialogHeader>
             <DialogTitle>Organization created</DialogTitle>
             <DialogDescription>
-              This owner temporary password is shown only once. Copy it now
-              and relay it to the organization owner securely.
+              This owner temporary password is shown only once. Copy it now and
+              relay it to the organization owner securely.
             </DialogDescription>
           </DialogHeader>
           <div className='grid gap-4'>
@@ -113,8 +116,8 @@ export function OrganizationDialog({
           <DialogHeader>
             <DialogTitle>Create organization</DialogTitle>
             <DialogDescription>
-              Onboards a new organization with its first branch, billing
-              plan, and owner account.
+              Onboards a new organization with its first branch, billing plan,
+              and owner account.
             </DialogDescription>
           </DialogHeader>
           <div className='grid gap-3'>

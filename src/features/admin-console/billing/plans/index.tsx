@@ -17,10 +17,10 @@ import {
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { Pagination } from '@/components/pagination'
 import { Toolbar } from '@/components/toolbar'
+import { PlanDialog } from '@/features/admin-console/billing/components/plan-dialog'
 import { TableRowActions } from '@/features/admin-console/components/table-row-actions'
 import { useCan } from '@/features/admin-console/hooks/use-can'
 import { useDebouncedQuery } from '@/features/admin-console/hooks/use-debounced-query'
-import { PlanDialog } from '@/features/admin-console/billing/components/plan-dialog'
 import { defaultQuery, type QueryState } from '@/features/admin-console/types'
 
 export function PlansTab() {

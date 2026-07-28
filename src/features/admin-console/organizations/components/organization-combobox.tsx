@@ -14,7 +14,11 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 
 /** Debounced server-side search combobox over /admin/organizations. */
 export function OrganizationCombobox({
@@ -28,7 +32,10 @@ export function OrganizationCombobox({
 }: {
   value?: string
   label?: string
-  onChange: (organizationId: string | undefined, organization?: Organization) => void
+  onChange: (
+    organizationId: string | undefined,
+    organization?: Organization
+  ) => void
   allowClear?: boolean
   modal?: boolean
   portalled?: boolean

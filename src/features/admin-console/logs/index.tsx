@@ -4,8 +4,6 @@ import { Eye } from 'lucide-react'
 import { type LogQuery, listLogs } from '@/api/admin'
 import type { ActivityLog } from '@/api/types'
 import { formatDate } from '@/lib/utils'
-import { Pagination } from '@/components/pagination'
-import { PageShell } from '@/components/page-shell'
 import {
   Dialog,
   DialogContent,
@@ -28,6 +26,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { PageShell } from '@/components/page-shell'
+import { Pagination } from '@/components/pagination'
 import { Toolbar } from '@/components/toolbar'
 import { TableRowActions } from '@/features/admin-console/components/table-row-actions'
 import { useDebouncedQuery } from '@/features/admin-console/hooks/use-debounced-query'

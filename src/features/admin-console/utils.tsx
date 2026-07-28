@@ -1,5 +1,5 @@
-import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
 
 export function statusBadge(value: boolean | string) {
   const banned = value === true || String(value).toLowerCase() === 'failure'

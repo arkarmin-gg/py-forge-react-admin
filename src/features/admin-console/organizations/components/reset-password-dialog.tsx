@@ -4,7 +4,6 @@ import { Loader2 } from 'lucide-react'
 import { resetOrganizationUserPassword } from '@/api/organizations'
 import type { Organization, ResetPasswordResult } from '@/api/types'
 import { Button } from '@/components/ui/button'
-import { CopyField } from '@/components/copy-field'
 import {
   Dialog,
   DialogContent,
@@ -15,6 +14,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { CopyField } from '@/components/copy-field'
 
 export function ResetPasswordDialog({
   open,
@@ -75,10 +75,9 @@ export function ResetPasswordDialog({
             <DialogTitle>Reset user password</DialogTitle>
             <DialogDescription>
               Reset the password for a tenant user in{' '}
-              {organization?.name ?? 'this organization'}. There is no
-              endpoint to browse this organization's members, so paste the
-              user ID directly (e.g. from the onboarding result or a support
-              ticket).
+              {organization?.name ?? 'this organization'}. There is no endpoint
+              to browse this organization's members, so paste the user ID
+              directly (e.g. from the onboarding result or a support ticket).
             </DialogDescription>
           </DialogHeader>
           <div className='grid gap-3'>

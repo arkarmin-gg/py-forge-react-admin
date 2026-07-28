@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
-export type TableRowAction = {
+type TableRowAction = {
   label: string
   icon?: ReactNode
   onSelect: () => void
@@ -21,8 +21,8 @@ type TableRowActionsProps = {
 }
 
 export function TableRowActions({ actions }: TableRowActionsProps) {
-  const visibleActions = actions.filter(
-    (action): action is TableRowAction => Boolean(action)
+  const visibleActions = actions.filter((action): action is TableRowAction =>
+    Boolean(action)
   )
 
   if (!visibleActions.length) {

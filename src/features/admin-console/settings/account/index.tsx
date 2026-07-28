@@ -5,6 +5,7 @@ import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { changeCurrentPassword, deleteCurrentAdmin } from '@/api/auth'
 import { useAuthStore } from '@/stores/auth-store'
+import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
@@ -12,11 +13,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { PageShell } from '@/components/page-shell'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ConfirmDialog } from '@/components/confirm-dialog'
+import { PageShell } from '@/components/page-shell'
 
 export function AccountSettingsPage() {
   const navigate = useNavigate()

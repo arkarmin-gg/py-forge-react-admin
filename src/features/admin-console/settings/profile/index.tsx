@@ -5,12 +5,12 @@ import { toast } from 'sonner'
 import { deleteCurrentAdminProfileImage, updateCurrentAdmin } from '@/api/auth'
 import { useAuthStore } from '@/stores/auth-store'
 import { getInitials } from '@/lib/utils'
-import { AvatarUpload } from '@/components/avatar-upload'
-import { Card, CardContent } from '@/components/ui/card'
-import { PageShell } from '@/components/page-shell'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { AvatarUpload } from '@/components/avatar-upload'
+import { PageShell } from '@/components/page-shell'
 
 export function ProfileSettingsPage() {
   const queryClient = useQueryClient()

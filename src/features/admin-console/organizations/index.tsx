@@ -57,7 +57,9 @@ export function OrganizationsPage() {
       setOrganizationSuspended(input.id, input.isSuspended),
     onSuccess: async (_data, variables) => {
       toast.success(
-        variables.isSuspended ? 'Organization suspended.' : 'Organization unsuspended.'
+        variables.isSuspended
+          ? 'Organization suspended.'
+          : 'Organization unsuspended.'
       )
       await queryClient.invalidateQueries({ queryKey: ['organizations'] })
     },

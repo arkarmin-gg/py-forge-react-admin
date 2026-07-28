@@ -83,10 +83,16 @@ export async function getOrganization(id: string) {
 }
 
 export async function deleteOrganization(id: string) {
-  await apiRequest<void>({ method: 'DELETE', url: `/admin/organizations/${id}` })
+  await apiRequest<void>({
+    method: 'DELETE',
+    url: `/admin/organizations/${id}`,
+  })
 }
 
-export async function setOrganizationSuspended(id: string, isSuspended: boolean) {
+export async function setOrganizationSuspended(
+  id: string,
+  isSuspended: boolean
+) {
   const data = await apiRequest<OrganizationWire>({
     method: 'PATCH',
     url: `/admin/organizations/${id}/suspend`,

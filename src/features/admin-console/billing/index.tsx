@@ -1,5 +1,5 @@
-import { PageShell } from '@/components/page-shell'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { PageShell } from '@/components/page-shell'
 import { PlansTab } from '@/features/admin-console/billing/plans'
 import { SubscriptionsTab } from '@/features/admin-console/billing/subscriptions'
 
